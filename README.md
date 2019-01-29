@@ -2,7 +2,7 @@ ng2-knob
 =============
 
 [![Join the chat at https://gitter.im/RadMie/ng-knob](https://badges.gitter.im/RadMie/ng-knob.svg)](https://gitter.im/RadMie/ng-knob?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-> Angular.js directive to Knob component powered by d3.js (without jQuery)
+> Angular 7 directive to Knob component powered by d3.js (without jQuery)
 
 ![screenshot](https://cloud.githubusercontent.com/assets/8116937/11868119/ef1c194e-a4b5-11e5-9ebe-40b6ebb9e5cf.png)
 
@@ -32,38 +32,7 @@ Features
 Get started
 -------
 
-#### Installation
-You can also use bower to install the component:
-```bash
-$ bower install ng-knob --save
-```
-
-#### Usage
-
-###### HTML:
-```html
-<body ng-app="KnobDemoApp">
-  <div ng-controller="knobCtrl">
-    <ui-knob value="value" options="options"></ui-knob>
-  </div>
-</body>
-
-<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.10/d3.min.js"></script>
-<script src="bower_components/ng-knob/dist/ng-knob.min.js"></script>
-```
-###### Angular.js:
-
-```javascript
-var app = angular.module('KnobDemoApp', ['ui.knob'])
-app.controller('knobCtrl', function ($scope) {
-  $scope.value = 65;
-  $scope.options = {
-    size: 300
-    //other options
-  };
-});
-```
+Please see Demo.component on sample usage.
 
 Options
 -------
@@ -99,15 +68,6 @@ Options
 | min              | integer      | 0                                                                                                     | Min value (start value), only integer                                                        |
 | max              | integer      | 100                                                                                                   | Max value (end value), only integer                                                          |
 | dynamicOptions   | boolean      | false                                                                                                 | Dynamic change options (`true` or `false`)                                                   |
-
-Contributing
--------
-
-1. Fork the repo
-2. Install dependencies: `npm install` and `bower install`
-3. Run: `grunt`
-4. Make your changes
-5. Submit pull request
 
 License
 -------
