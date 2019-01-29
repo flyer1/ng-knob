@@ -4,7 +4,7 @@
   "author": "RadMie <radoslaw.mietkiewicz@gmail.com>, Jon Kroeker",
   "description": "Angular Knob directive",
   "homepage": "https://radmie.github.io/ng-knob",
-  "repository":  {
+  "repository": {
     "type": "git",
     "url": "git://github.com/flyer1/ng2-knob.git"
   },
