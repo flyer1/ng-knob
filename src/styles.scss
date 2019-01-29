@@ -1,0 +1,137 @@
+body {
+  padding-top: 80px;
+}
+
+pre {
+  border: none;
+  color: #2c3e50;
+}
+
+h1,
+h3,
+h5 {
+  font-family: "Lato", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: 400;
+  line-height: 1.1;
+  color: inherit;
+  margin-bottom: 10.5px;
+}
+
+h1 {
+  font-size: 39px;
+  margin-top: 21px;
+}
+
+h3 {
+  margin-top: 21px;
+}
+
+h5 {
+  font-size: 15px;
+  margin-top: 10.5px;
+}
+
+.table-bordered {
+  border-color: #2C3E50;
+}
+
+.table-bordered>thead>tr {
+  background-color: #2C3E50;
+  color: #ecf0f1;
+}
+
+.table-bordered>thead>tr>th {
+  border-color: #2C3E50;
+}
+
+.table-bordered>tbody>tr>td {
+  border-color: #2C3E50;
+}
+
+footer {
+  background-color: #2C3E50;
+  padding: 20px 0;
+  margin-top: 40px
+}
+
+footer p {
+  margin: 0;
+}
+
+.container {
+  width: 1170px;
+  margin-right: auto;
+  margin-left: auto;
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+.row1 {
+  display: grid;
+  grid-gap: 15px;
+  grid-template-columns: repeat(auto-fill, 350px);
+}
+
+.item {
+  display: inline-block;
+  padding: .25rem;
+  width: 100%;
+  background: #ecf0f1;
+}
+
+.panel {
+  border: 1px solid transparent;
+  border-radius: 4px;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+  border-color: #2c3e50;
+  height: 100%;
+
+  .panel-heading {
+    color: #ffffff;
+    background-color: #2c3e50;
+    border-color: #2c3e50;
+    padding: 10px 15px;
+    border-bottom: 1px solid transparent;
+    border-top-right-radius: 3px;
+    border-top-left-radius: 3px;
+  }
+
+  .panel-title {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-size: 17px;
+    color: inherit;
+  }
+
+  .panel-body {
+    text-align: center;
+
+    .example {
+      background: white;
+      padding: 10px 0;
+    }
+  }
+
+  .panel-footer {
+    padding: 10px 15px;
+    background-color: #ecf0f1;
+    border-top: 1px solid #ecf0f1;
+    border-bottom-right-radius: 3px;
+    border-bottom-left-radius: 3px;
+
+    pre {
+      display: block;
+      padding: 10px;
+      margin: 0 0 10.5px;
+      font-size: 14px;
+      line-height: 1.42857143;
+      word-break: break-all;
+      word-wrap: break-word;
+      background-color: #ecf0f1;
+      border-radius: 4px;
+      border: none;
+      color: #2c3e50;
+      text-align-last: left;
+    }
+  }
+}

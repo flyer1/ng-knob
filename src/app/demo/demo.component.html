@@ -1,0 +1,24 @@
+<section>
+  <div class="container">
+    <h1>Examples</h1>
+    <h5>with different options</h5>
+
+    <div *ngIf="data" class="row row1">
+      <div *ngFor="let example of data" class="item">
+        <div class="panel panel-primary">
+          <div class="panel-heading">
+            <h3 class="panel-title">
+              {{example.name}}
+            </h3>
+          </div>
+          <div class="panel-body">
+            <div class="example" appKnob [options]="example.options" [value]="example.value"></div>
+            <div class="panel-footer">
+                <pre>{{ example.config | json }}</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
