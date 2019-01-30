@@ -90,7 +90,7 @@ export class KnobComponentDirective implements AfterViewInit {
     /**
      *   Draw the arc
      */
-    drawArc(svg, arc, label = '', style: { name: string, value: string }, click?: Function, drag = false) {
+    drawArc(svg, arc: d3.Arc<any, d3.DefaultArcObject>, label = '', style: { name: string, value: string }, click?: Function, drag = false): any {
         const elem = svg.append('path')
             .attr('id', label)
             .attr('d', arc)
@@ -130,7 +130,6 @@ export class KnobComponentDirective implements AfterViewInit {
             outerRadius -= this.options.scale.width + this.options.scale.spaceWidth;
         }
 
-
         if (this.options.barWidth > this.options.trackWidth) {
             diff = (this.options.barWidth - this.options.trackWidth) / 2;
             trackInnerRadius -= diff;
@@ -143,6 +142,7 @@ export class KnobComponentDirective implements AfterViewInit {
             valueInnerRadius -= diff;
             // interactInnerRadius = outerRadius - this.options.trackWidth;
         }
+
         if (this.options.bgColor) {
             if (this.options.bgFull) {
                 this.bgArc = this.createArc(0, outerRadius, 0, Math.PI * 2);
@@ -190,6 +190,7 @@ export class KnobComponentDirective implements AfterViewInit {
             if (typeof this.options.inputFormatter === 'function') {
                 v = this.options.inputFormatter(v);
             }
+
             svg.append('text')
                 .attr('id', 'text')
                 .attr('text-anchor', 'middle')
@@ -212,6 +213,7 @@ export class KnobComponentDirective implements AfterViewInit {
                     .attr('transform', 'translate(' + ((this.options.size / 2)) + ', ' + ((this.options.size / 2) + (this.options.size * 0.15)) + ')');
             }
         }
+
         if (this.options.scale.enabled) {
             let radius, quantity, count = 0, angle = 0, data;
             const startRadians = this.valueToRadians(this.options.min, this.options.max, this.options.endAngle, this.options.startAngle, this.options.min);
@@ -238,9 +240,9 @@ export class KnobComponentDirective implements AfterViewInit {
                 svg.selectAll('circle')
                     .data(data)
                     .enter().append('circle')
-                    .attr('r', function (d: any) { return d.r; })
-                    .attr('cx', function (d: any) { return d.cx; })
-                    .attr('cy', function (d: any) { return d.cy; })
+                    .attr('r', (d: any) => d.r)
+                    .attr('cx', (d: any) => d.cx )
+                    .attr('cy', (d: any) => d.cy )
                     .attr('fill', this.options.scale.color);
             } else if (this.options.scale.type === 'lines') {
                 const height = this.options.scale.height;
@@ -259,10 +261,10 @@ export class KnobComponentDirective implements AfterViewInit {
                 svg.selectAll('line')
                     .data(data)
                     .enter().append('line')
-                    .attr('x1', function (d: any) { return d.x1; })
-                    .attr('y1', function (d: any) { return d.y1; })
-                    .attr('x2', function (d: any) { return d.x2; })
-                    .attr('y2', function (d: any) { return d.y2; })
+                    .attr('x1', (d: any) => d.x1 )
+                    .attr('y1', (d: any) => d.y1 )
+                    .attr('x2', (d: any) => d.x2 )
+                    .attr('y2', (d: any) => d.y2 )
                     .attr('stroke-width', this.options.scale.width)
                     .attr('stroke', this.options.scale.color)
                     ;
@@ -272,20 +274,22 @@ export class KnobComponentDirective implements AfterViewInit {
             this.drawArc(svg, this.hoopArc, 'hoopArc', { name: 'fill', value: this.options.skin.color });
         }
         this.drawArc(svg, this.trackArc, 'trackArc', { name: 'fill', value: this.options.trackColor });
+
         if (this.options.displayPrevious) {
             this.changeElem = this.drawArc(svg, this.changeArc, 'changeArc', { name: 'fill', value: this.options.prevBarColor });
         } else {
             this.changeElem = this.drawArc(svg, this.changeArc, 'changeArc', { name: 'fill-opacity', value: '0' });
         }
         this.valueElem = this.drawArc(svg, this.valueArc, 'valueArc', { name: 'fill', value: this.options.barColor });
+
         let cursor = 'pointer';
         if (this.options.readOnly) {
             cursor = 'default';
         }
+
         // TODO: I had to remove the second style for now: , 'cursor': cursor
         this.drawArc(svg, this.interactArc, 'interactArc', { name: 'fill-opacity', value: '0' }, clickInteraction, dragBehavior);
     }
-
 
     /**
      *   Draw knob component
@@ -335,9 +339,9 @@ export class KnobComponentDirective implements AfterViewInit {
             interaction(x, y, true);
         }
 
-        function interaction(x, y, isFinal) {
+        function interaction(x: number, y: number, isFinal: boolean) {
+            let radians: number, delta: number;
             const arc = Math.atan(y / x) / (Math.PI / 180);
-            let radians, delta;
 
             if ((x >= 0 && y <= 0) || (x >= 0 && y >= 0)) {
                 delta = 90;

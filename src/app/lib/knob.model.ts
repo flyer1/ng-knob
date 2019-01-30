@@ -1,4 +1,5 @@
 import { mergeDeep } from '../demo/common.helper';
+import { v } from '@angular/core/src/render3';
 
 export class KnobModel {
     skin: {
@@ -17,7 +18,7 @@ export class KnobModel {
     endAngle: number;
     unit: string;
     displayInput: boolean;
-    inputFormatter: any; // function (v) { return v; };
+    inputFormatter: Function; // function (v) { return v; };
     readOnly: boolean;
     trackWidth: number;
     barWidth: number;
@@ -74,7 +75,7 @@ export class KnobModel {
             endAngle: 360,
             unit: '',
             displayInput: true,
-            inputFormatter: function (v) { return v; },
+            inputFormatter: (val: any) => val,
             readOnly: false,
             trackWidth: 50,
             barWidth: 50,
