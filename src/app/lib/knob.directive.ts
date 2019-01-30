@@ -9,6 +9,8 @@ import { KnobModel } from './knob.model';
 export class KnobComponentDirective implements AfterViewInit {
 
     private _value = 0;
+    private _options: KnobModel;
+
     inDrag = false;
     bgArc: d3.Arc<any, d3.DefaultArcObject>;
     hoopArc: d3.Arc<any, d3.DefaultArcObject>;
@@ -19,19 +21,23 @@ export class KnobComponentDirective implements AfterViewInit {
     changeElem: any; // TODO: what type is this?
     valueElem: any; // TODO: what type is this?
 
-    @Input() options: KnobModel;
+    @Input() get options(): KnobModel { return this._options; }
+    set options(value: KnobModel) {
+        this._options = value;
+        this.draw();
+    }
 
     @Input() get value(): number { return this._value; }
     set value(val: number) {
         this._value = val;
         // this.setValue(val);
-        // this.draw();
+        this.setValue(this._value);
     }
 
     constructor(private el: ElementRef) { }
 
     ngAfterViewInit() {
-        this.draw();
+        // this.draw();
         // TODO: have the order of args right?
         // this.options = Object.assign({}, this.options, defaultOptions);
         // let knob = new ui.Knob(this.el.nativeElement, this.value, this.options);
@@ -112,23 +118,23 @@ export class KnobComponentDirective implements AfterViewInit {
      *   Create the arcs
      */
     createArcs() {
+        let outerRadius = this.options.size / 2;
         const startAngle = this.valueToRadians(this.options.startAngle, 360);
         const endAngle = this.valueToRadians(this.options.endAngle, 360);
-        let outerRadius = this.options.size / 2;
+        if (this.options.scale.enabled) {
+            outerRadius -= this.options.scale.width + this.options.scale.spaceWidth;
+        }
         let trackInnerRadius = outerRadius - this.options.trackWidth;
         let changeInnerRadius = outerRadius - this.options.barWidth;
         let valueInnerRadius = outerRadius - this.options.barWidth;
         // interactInnerRadius = outerRadius - this.options.barWidth,
+        const interactInnerRadius = 1;
+
         let trackOuterRadius = outerRadius;
         let changeOuterRadius = outerRadius;
         let valueOuterRadius = outerRadius;
         let interactOuterRadius = outerRadius;
         let diff: number;
-        const interactInnerRadius = 1;
-
-        if (this.options.scale.enabled) {
-            outerRadius -= this.options.scale.width + this.options.scale.spaceWidth;
-        }
 
         if (this.options.barWidth > this.options.trackWidth) {
             diff = (this.options.barWidth - this.options.trackWidth) / 2;
@@ -241,8 +247,8 @@ export class KnobComponentDirective implements AfterViewInit {
                     .data(data)
                     .enter().append('circle')
                     .attr('r', (d: any) => d.r)
-                    .attr('cx', (d: any) => d.cx )
-                    .attr('cy', (d: any) => d.cy )
+                    .attr('cx', (d: any) => d.cx)
+                    .attr('cy', (d: any) => d.cy)
                     .attr('fill', this.options.scale.color);
             } else if (this.options.scale.type === 'lines') {
                 const height = this.options.scale.height;
@@ -261,10 +267,10 @@ export class KnobComponentDirective implements AfterViewInit {
                 svg.selectAll('line')
                     .data(data)
                     .enter().append('line')
-                    .attr('x1', (d: any) => d.x1 )
-                    .attr('y1', (d: any) => d.y1 )
-                    .attr('x2', (d: any) => d.x2 )
-                    .attr('y2', (d: any) => d.y2 )
+                    .attr('x1', (d: any) => d.x1)
+                    .attr('y1', (d: any) => d.y1)
+                    .attr('x2', (d: any) => d.x2)
+                    .attr('y2', (d: any) => d.y2)
                     .attr('stroke-width', this.options.scale.width)
                     .attr('stroke', this.options.scale.color)
                     ;
@@ -391,8 +397,10 @@ export class KnobComponentDirective implements AfterViewInit {
                 this._value = parseFloat(this._value.toFixed(1));
             }
             this.changeArc.endAngle(radians);
+
             d3.select(this.el.nativeElement).select('#changeArc').attr('d', this.changeArc);
             this.valueArc.endAngle(radians);
+
             d3.select(this.el.nativeElement).select('#valueArc').attr('d', this.valueArc);
             if (this.options.displayInput) {
                 let v = this._value;

@@ -18,7 +18,7 @@ export class KnobModel {
     endAngle: number;
     unit: string;
     displayInput: boolean;
-    inputFormatter: Function; // function (v) { return v; };
+    inputFormatter: Function;
     readOnly: boolean;
     trackWidth: number;
     barWidth: number;
