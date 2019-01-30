@@ -118,9 +118,9 @@ export class KnobComponentDirective implements AfterViewInit {
      *   Create the arcs
      */
     createArcs() {
-        let outerRadius = this.options.size / 2;
         const startAngle = this.valueToRadians(this.options.startAngle, 360);
         const endAngle = this.valueToRadians(this.options.endAngle, 360);
+        let outerRadius = this.options.size / 2;
         if (this.options.scale.enabled) {
             outerRadius -= this.options.scale.width + this.options.scale.spaceWidth;
         }
@@ -315,7 +315,8 @@ export class KnobComponentDirective implements AfterViewInit {
         // TODO: temp
         // that.options.animate.enabled = false;
         if (that.options.animate.enabled && false) {
-            that.valueElem.transition().ease(that.options.animate.ease).duration(that.options.animate.duration).tween('', function () {
+            const transitionFunction = 'ease' + that.options.animate.ease[0].toUpperCase() + that.options.animate.ease.slice(1);
+            that.valueElem.transition().ease[transitionFunction](that.options.animate.duration).tween('', function () {
                 const i = d3.interpolate(that.valueToRadians(that.options.startAngle, 360), that.valueToRadians(that.value, that.options.max, that.options.endAngle, that.options.startAngle, that.options.min));
                 return function (t) {
                     const val = i(t);
