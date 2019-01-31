@@ -1,7 +1,8 @@
-import { AfterViewInit, Input, ElementRef, Directive } from '@angular/core';
+import { AfterViewInit, Input, ElementRef, Directive, Output, EventEmitter } from '@angular/core';
 import * as d3 from 'd3';
 
 import { KnobModel } from './knob.model';
+import { OuterSubscriber } from 'rxjs/internal/OuterSubscriber';
 
 @Directive({
     selector: '[appKnob]'
@@ -29,10 +30,13 @@ export class KnobComponentDirective implements AfterViewInit {
 
     @Input() get value(): number { return this._value; }
     set value(val: number) {
+        if (val === this._value) { return; }
+
         this._value = val;
-        // this.setValue(val);
         this.setValue(this._value);
     }
+
+    @Output() knobValueChanged = new EventEmitter<number>();
 
     constructor(private el: ElementRef) { }
 
@@ -186,12 +190,15 @@ export class KnobComponentDirective implements AfterViewInit {
 
         if (this.options.displayInput) {
             let fontSize = (this.options.size * 0.20) + 'px';
+
             if (this.options.fontSize !== 'auto') {
                 fontSize = this.options.fontSize + 'px';
             }
+
             if (this.options.step < 1) {
                 this._value = parseFloat(this._value.toFixed(1));
             }
+
             let v = this._value;
             if (typeof this.options.inputFormatter === 'function') {
                 v = this.options.inputFormatter(v);
@@ -367,8 +374,11 @@ export class KnobComponentDirective implements AfterViewInit {
                 if (that.options.step < 1) {
                     that.value = parseFloat(that.value.toFixed(1));
                 }
+
                 // TODO: This used to be a function passed in...
                 // update(that.value);
+                that.knobValueChanged.emit(that.value);
+
                 that.valueArc.endAngle(that.valueToRadians(that.value, that.options.max, that.options.endAngle, that.options.startAngle, that.options.min));
                 that.valueElem.attr('d', that.valueArc);
                 if (isFinal) {

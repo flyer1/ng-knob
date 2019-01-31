@@ -10,11 +10,18 @@ import { DemoModel } from './demo.model';
 })
 export class DemoComponent implements OnInit {
 
-    data: DemoModel[];
+    data: DemoModel[] = [];
 
     ngOnInit() {
-        this.data = [];
+        this.configureKnobs();
+        return;
+    }
 
+    onValueChanged(value: number, example: DemoModel) {
+        example.value = value;
+    }
+
+    configureKnobs() {
         ////////////// #1 - Skin Tron + scale //////////////////
         let config: any = {
             skin: {
@@ -255,7 +262,5 @@ export class DemoComponent implements OnInit {
             options: new KnobModel(config),
             config: config
         });
-
-        return;
     }
 }

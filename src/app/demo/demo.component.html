@@ -9,10 +9,11 @@
           <div class="panel-heading">
             <h3 class="panel-title">
               {{example.name}}
+              <span class="badge pull-right">{{example.value}}</span>
             </h3>
           </div>
           <div class="panel-body">
-            <div class="example" appKnob [options]="example.options" [value]="example.value"></div>
+            <div class="example" appKnob [options]="example.options" [value]="example.value" (knobValueChanged)="onValueChanged($event, example)"></div>
             <div class="panel-footer">
                 <pre>{{ example.config | json }}</pre>
             </div>
