@@ -2,7 +2,6 @@ import { AfterViewInit, Input, ElementRef, Directive, Output, EventEmitter } fro
 import { arc, select, range, drag, event, mouse, interpolate } from 'd3';
 
 import { KnobModel } from './knob.model';
-import { OuterSubscriber } from 'rxjs/internal/OuterSubscriber';
 
 @Directive({
     selector: '[appKnob]'
@@ -400,10 +399,13 @@ export class KnobComponentDirective implements AfterViewInit {
     *   Set a value
     */
     setValue(newValue) {
+
         if ((!this.inDrag) && this._value >= this.options.min && this._value <= this.options.max) {
             const radians = this.valueToRadians(newValue, this.options.max, this.options.endAngle, this.options.startAngle, this.options.min);
+
             // tslint:disable-next-line:no-bitwise
             this._value = Math.round(((~~(((newValue < 0) ? -0.5 : 0.5) + (newValue / this.options.step))) * this.options.step) * 100) / 100;
+
             if (this.options.step < 1) {
                 this._value = parseFloat(this._value.toFixed(1));
             }
@@ -415,6 +417,7 @@ export class KnobComponentDirective implements AfterViewInit {
             select(this.el.nativeElement).select('#valueArc').attr('d', this.valueArc);
             if (this.options.displayInput) {
                 let v = this._value;
+                // TODO: Need to test the inputFormatter
                 if (typeof this.options.inputFormatter === 'function') {
                     v = this.options.inputFormatter(v);
                 }
