@@ -1,5 +1,5 @@
 import { AfterViewInit, Input, ElementRef, Directive, Output, EventEmitter } from '@angular/core';
-import * as d3 from 'd3';
+import { arc, select, range, drag, event, mouse, interpolate } from 'd3';
 
 import { KnobModel } from './knob.model';
 import { OuterSubscriber } from 'rxjs/internal/OuterSubscriber';
@@ -88,31 +88,31 @@ export class KnobComponentDirective implements AfterViewInit {
      *   Create the arc
      */
     createArc(innerRadius: number, outerRadius = 0, startAngle = 0, endAngle = 0, cornerRadius = 0): d3.Arc<any, d3.DefaultArcObject> {
-        const arc = d3.arc()
+        const result = arc()
             .innerRadius(innerRadius)
             .outerRadius(outerRadius)
             .startAngle(startAngle)
             .endAngle(endAngle)
             .cornerRadius(cornerRadius);
-        return arc;
+        return result;
     }
 
     /**
      *   Draw the arc
      */
-    drawArc(svg, arc: d3.Arc<any, d3.DefaultArcObject>, label = '', style: { name: string, value: string }, click?: Function, drag = false): any {
+    drawArc(svg, arcData: d3.Arc<any, d3.DefaultArcObject>, label = '', style: { name: string, value: string }, clickInteraction?: Function, dragBehavior = false): any {
         const elem = svg.append('path')
             .attr('id', label)
-            .attr('d', arc)
+            .attr('d', arcData)
             .style(style.name, style.value)
             .attr('transform', 'translate(' + (this.options.size / 2) + ', ' + (this.options.size / 2) + ')');
 
         if (this.options.readOnly === false) {
-            if (click) {
-                elem.on('click', click);
+            if (clickInteraction) {
+                elem.on('click', clickInteraction);
             }
-            if (drag) {
-                elem.call(drag);
+            if (dragBehavior) {
+                elem.call(dragBehavior);
             }
         }
         return elem;
@@ -179,7 +179,7 @@ export class KnobComponentDirective implements AfterViewInit {
      *   Draw the arcs
      */
     drawArcs(clickInteraction, dragBehavior) {
-        const svg = d3.select(this.el.nativeElement)
+        const svg = select(this.el.nativeElement)
             .append('svg')
             .attr('width', this.options.size)
             .attr('height', this.options.size);
@@ -241,7 +241,7 @@ export class KnobComponentDirective implements AfterViewInit {
                 radius = (this.options.size / 2) - width;
                 quantity = this.options.scale.quantity;
                 const offset = radius + this.options.scale.width;
-                data = d3.range(quantity).map(function () {
+                data = range(quantity).map(function () {
                     angle = (count * (endRadians - startRadians)) - (Math.PI / 2) + startRadians;
                     count = count + (1 / (quantity - diff));
                     return {
@@ -261,7 +261,7 @@ export class KnobComponentDirective implements AfterViewInit {
                 const height = this.options.scale.height;
                 radius = (this.options.size / 2);
                 quantity = this.options.scale.quantity;
-                data = d3.range(quantity).map(function () {
+                data = range(quantity).map(function () {
                     angle = (count * (endRadians - startRadians)) - (Math.PI / 2) + startRadians;
                     count = count + (1 / (quantity - diff));
                     return {
@@ -308,12 +308,12 @@ export class KnobComponentDirective implements AfterViewInit {
      *   Draw knob component
      */
     draw() {
-        d3.select(this.el.nativeElement).select('svg').remove();
+        select(this.el.nativeElement).select('svg').remove();
         const that = this;
 
         that.createArcs();
 
-        const dragBehavior = d3.drag()
+        const dragBehavior = drag()
             .on('drag', dragInteraction)
             .on('end', clickInteraction);
 
@@ -324,7 +324,7 @@ export class KnobComponentDirective implements AfterViewInit {
         if (that.options.animate.enabled && false) {
             const transitionFunction = 'ease' + that.options.animate.ease[0].toUpperCase() + that.options.animate.ease.slice(1);
             that.valueElem.transition().ease[transitionFunction](that.options.animate.duration).tween('', function () {
-                const i = d3.interpolate(that.valueToRadians(that.options.startAngle, 360), that.valueToRadians(that.value, that.options.max, that.options.endAngle, that.options.startAngle, that.options.min));
+                const i = interpolate(that.valueToRadians(that.options.startAngle, 360), that.valueToRadians(that.value, that.options.max, that.options.endAngle, that.options.startAngle, that.options.min));
                 return function (t) {
                     const val = i(t);
                     that.valueElem.attr('d', that.valueArc.endAngle(val));
@@ -340,14 +340,14 @@ export class KnobComponentDirective implements AfterViewInit {
 
         function dragInteraction() {
             that.inDrag = true;
-            const x = d3.event.x - (that.options.size / 2);
-            const y = d3.event.y - (that.options.size / 2);
+            const x = event.x - (that.options.size / 2);
+            const y = event.y - (that.options.size / 2);
             interaction(x, y, false);
         }
 
         function clickInteraction() {
             that.inDrag = false;
-            const coords = d3.mouse(this.parentNode);
+            const coords = mouse(this.parentNode);
             const x = coords[0] - (that.options.size / 2);
             const y = coords[1] - (that.options.size / 2);
             interaction(x, y, true);
@@ -355,7 +355,7 @@ export class KnobComponentDirective implements AfterViewInit {
 
         function interaction(x: number, y: number, isFinal: boolean) {
             let radians: number, delta: number;
-            const arc = Math.atan(y / x) / (Math.PI / 180);
+            const arcData = Math.atan(y / x) / (Math.PI / 180);
 
             if ((x >= 0 && y <= 0) || (x >= 0 && y >= 0)) {
                 delta = 90;
@@ -366,7 +366,7 @@ export class KnobComponentDirective implements AfterViewInit {
                 }
             }
 
-            radians = (delta + arc) * (Math.PI / 180);
+            radians = (delta + arcData) * (Math.PI / 180);
             that.value = that.radiansToValue(radians, that.options.max, that.options.min, that.options.endAngle, that.options.startAngle);
             if (that.value >= that.options.min && that.value <= that.options.max) {
                 // tslint:disable-next-line:no-bitwise
@@ -390,7 +390,7 @@ export class KnobComponentDirective implements AfterViewInit {
                     if (typeof that.options.inputFormatter === 'function') {
                         v = that.options.inputFormatter(v);
                     }
-                    d3.select(that.el.nativeElement).select('#text').text(v + that.options.unit || '');
+                    select(that.el.nativeElement).select('#text').text(v + that.options.unit || '');
                 }
             }
         }
@@ -409,16 +409,16 @@ export class KnobComponentDirective implements AfterViewInit {
             }
             this.changeArc.endAngle(radians);
 
-            d3.select(this.el.nativeElement).select('#changeArc').attr('d', this.changeArc);
+            select(this.el.nativeElement).select('#changeArc').attr('d', this.changeArc);
             this.valueArc.endAngle(radians);
 
-            d3.select(this.el.nativeElement).select('#valueArc').attr('d', this.valueArc);
+            select(this.el.nativeElement).select('#valueArc').attr('d', this.valueArc);
             if (this.options.displayInput) {
                 let v = this._value;
                 if (typeof this.options.inputFormatter === 'function') {
                     v = this.options.inputFormatter(v);
                 }
-                d3.select(this.el.nativeElement).select('#text').text(v + this.options.unit || '');
+                select(this.el.nativeElement).select('#text').text(v + this.options.unit || '');
             }
         }
     }
