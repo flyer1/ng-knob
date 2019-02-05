@@ -1,5 +1,5 @@
 import { AfterViewInit, Input, ElementRef, Directive, Output, EventEmitter } from '@angular/core';
-import { arc, select, range, drag, event, mouse, interpolate } from 'd3';
+import { arc, select, range, drag, event, mouse, interpolate, Selection } from 'd3';
 
 import { KnobModel } from './knob.model';
 
@@ -99,7 +99,13 @@ export class KnobComponentDirective implements AfterViewInit {
     /**
      *   Draw the arc
      */
-    drawArc(svg, arcData: d3.Arc<any, d3.DefaultArcObject>, label = '', style: { name: string, value: string }, clickInteraction?: Function, dragBehavior = false): any {
+    drawArc(svg: Selection<any, any, null, undefined>,
+        arcData: d3.Arc<any, d3.DefaultArcObject>,
+        label = '',
+        style: { name: string, value: string },
+        clickInteraction?: any,
+        dragBehavior?: any): any {
+
         const elem = svg.append('path')
             .attr('id', label)
             .attr('d', arcData)
@@ -177,7 +183,7 @@ export class KnobComponentDirective implements AfterViewInit {
     /**
      *   Draw the arcs
      */
-    drawArcs(clickInteraction, dragBehavior) {
+    drawArcs(clickInteraction: Function, dragBehavior: Function) {
         const svg = select(this.el.nativeElement)
             .append('svg')
             .attr('width', this.options.size)
@@ -227,7 +233,7 @@ export class KnobComponentDirective implements AfterViewInit {
         }
 
         if (this.options.scale.enabled) {
-            let radius, quantity, count = 0, angle = 0, data;
+            let radius: number, quantity: number, count = 0, angle = 0, data: any[];
             const startRadians = this.valueToRadians(this.options.min, this.options.max, this.options.endAngle, this.options.startAngle, this.options.min);
             const endRadians = this.valueToRadians(this.options.max, this.options.max, this.options.endAngle, this.options.startAngle, this.options.min);
             let diff = 0;
@@ -374,8 +380,6 @@ export class KnobComponentDirective implements AfterViewInit {
                     that.value = parseFloat(that.value.toFixed(1));
                 }
 
-                // TODO: This used to be a function passed in...
-                // update(that.value);
                 that.knobValueChanged.emit(that.value);
 
                 that.valueArc.endAngle(that.valueToRadians(that.value, that.options.max, that.options.endAngle, that.options.startAngle, that.options.min));
@@ -398,7 +402,7 @@ export class KnobComponentDirective implements AfterViewInit {
     /**
     *   Set a value
     */
-    setValue(newValue) {
+    setValue(newValue: number) {
 
         if ((!this.inDrag) && this._value >= this.options.min && this._value <= this.options.max) {
             const radians = this.valueToRadians(newValue, this.options.max, this.options.endAngle, this.options.startAngle, this.options.min);
