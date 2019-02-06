@@ -1,4 +1,4 @@
-import { AfterViewInit, Input, ElementRef, Directive, Output, EventEmitter } from '@angular/core';
+import { Input, ElementRef, Directive, Output, EventEmitter } from '@angular/core';
 import { arc, select, range, drag, event, mouse, interpolate, Selection } from 'd3';
 
 import { KnobModel } from './knob.model';
@@ -6,7 +6,7 @@ import { KnobModel } from './knob.model';
 @Directive({
     selector: '[appKnob]'
 })
-export class KnobComponentDirective implements AfterViewInit {
+export class KnobComponentDirective {
 
     private _value = 0;
     private _options: KnobModel;
@@ -39,88 +39,125 @@ export class KnobComponentDirective implements AfterViewInit {
 
     constructor(private el: ElementRef) { }
 
-    ngAfterViewInit() {
-        // this.draw();
-        // TODO: have the order of args right?
-        // this.options = Object.assign({}, this.options, defaultOptions);
-        // let knob = new ui.Knob(this.el.nativeElement, this.value, this.options);
+    // ngAfterViewInit() {
+    // this.draw();
+    // TODO: have the order of args right?
+    // this.options = Object.assign({}, this.options, defaultOptions);
+    // let knob = new ui.Knob(this.el.nativeElement, this.value, this.options);
 
-        // if (this.options.dynamicOptions) {
-        //     var isFirstWatchOnOptions = true;
-        //     this.$watch('options', function () {
-        //         if (isFirstWatchOnOptions) {
-        //             isFirstWatchOnOptions = false;
-        //         } else {
-        //             var newOptions = angular.merge(defaultOptions, this.options);
-        //             knob = new ui.Knob(element[0], this.value, newOptions);
-        //             drawKnob();
-        //         }
-        //     }, true);
-        // }
-        // this.draw(this.value)
-        // var drawKnob = function () {
-        //     knob.draw(function (value) {
-        //         this.$apply(function () {
-        //             this.value = value;
-        //         });
-        //     });
-        // };
+    // if (this.options.dynamicOptions) {
+    //     var isFirstWatchOnOptions = true;
+    //     this.$watch('options', function () {
+    //         if (isFirstWatchOnOptions) {
+    //             isFirstWatchOnOptions = false;
+    //         } else {
+    //             var newOptions = angular.merge(defaultOptions, this.options);
+    //             knob = new ui.Knob(element[0], this.value, newOptions);
+    //             drawKnob();
+    //         }
+    //     }, true);
+    // }
+    // this.draw(this.value)
+    // var drawKnob = function () {
+    //     knob.draw(function (value) {
+    //         this.$apply(function () {
+    //             this.value = value;
+    //         });
+    //     });
+    // };
 
-        // drawKnob();
+    // drawKnob();
 
-    }
-    /**
-    *   Convert from value to radians
-    */
-    valueToRadians(value: number, valueEnd = 100, angleEnd = 360, angleStart = 0, valueStart = 0) {
-        return (Math.PI / 180) * ((((value - valueStart) * (angleEnd - angleStart)) / (valueEnd - valueStart)) + angleStart);
-    }
+    // }
 
     /**
-     *   Convert from radians to value
+     *   Draw knob component
      */
-    radiansToValue(radians: number, valueEnd = 100, valueStart = 0, angleEnd = 360, angleStart = 0) {
-        return ((((((180 / Math.PI) * radians) - angleStart) * (valueEnd - valueStart)) / (angleEnd - angleStart)) + valueStart);
-    }
+    draw() {
+        select(this.el.nativeElement).select('svg').remove();
+        const that = this;
 
-    /**
-     *   Create the arc
-     */
-    createArc(innerRadius: number, outerRadius = 0, startAngle = 0, endAngle = 0, cornerRadius = 0): d3.Arc<any, d3.DefaultArcObject> {
-        const result = arc()
-            .innerRadius(innerRadius)
-            .outerRadius(outerRadius)
-            .startAngle(startAngle)
-            .endAngle(endAngle)
-            .cornerRadius(cornerRadius);
-        return result;
-    }
+        that.createArcs();
 
-    /**
-     *   Draw the arc
-     */
-    drawArc(svg: Selection<any, any, null, undefined>,
-        arcData: d3.Arc<any, d3.DefaultArcObject>,
-        label = '',
-        style: { name: string, value: string },
-        clickInteraction?: any,
-        dragBehavior?: any): any {
+        const dragBehavior = drag()
+            .on('drag', dragInteraction)
+            .on('end', clickInteraction);
 
-        const elem = svg.append('path')
-            .attr('id', label)
-            .attr('d', arcData)
-            .style(style.name, style.value)
-            .attr('transform', 'translate(' + (this.options.size / 2) + ', ' + (this.options.size / 2) + ')');
+        that.drawArcs(clickInteraction, dragBehavior);
 
-        if (this.options.readOnly === false) {
-            if (clickInteraction) {
-                elem.on('click', clickInteraction);
+        // TODO: temp
+        // that.options.animate.enabled = false;
+        if (that.options.animate.enabled && false) {
+            const transitionFunction = 'ease' + that.options.animate.ease[0].toUpperCase() + that.options.animate.ease.slice(1);
+            that.valueElem.transition().ease[transitionFunction](that.options.animate.duration).tween('', function () {
+                const i = interpolate(that.valueToRadians(that.options.startAngle, 360), that.valueToRadians(that.value, that.options.max, that.options.endAngle, that.options.startAngle, that.options.min));
+                return function (t) {
+                    const val = i(t);
+                    that.valueElem.attr('d', that.valueArc.endAngle(val));
+                    that.changeElem.attr('d', that.changeArc.endAngle(val));
+                };
+            });
+        } else {
+            that.changeArc.endAngle(this.valueToRadians(this._value, this.options.max, this.options.endAngle, this.options.startAngle, this.options.min));
+            that.changeElem.attr('d', that.changeArc);
+            that.valueArc.endAngle(this.valueToRadians(this._value, this.options.max, this.options.endAngle, this.options.startAngle, this.options.min));
+            that.valueElem.attr('d', that.valueArc);
+        }
+
+        function dragInteraction() {
+            that.inDrag = true;
+            const x = event.x - (that.options.size / 2);
+            const y = event.y - (that.options.size / 2);
+            interaction(x, y, false);
+        }
+
+        function clickInteraction() {
+            that.inDrag = false;
+            const coords = mouse(this.parentNode);
+            const x = coords[0] - (that.options.size / 2);
+            const y = coords[1] - (that.options.size / 2);
+            interaction(x, y, true);
+        }
+
+        function interaction(x: number, y: number, isFinal: boolean) {
+            let radians: number, delta: number;
+            const arcData = Math.atan(y / x) / (Math.PI / 180);
+
+            if ((x >= 0 && y <= 0) || (x >= 0 && y >= 0)) {
+                delta = 90;
+            } else {
+                delta = 270;
+                if (that.options.startAngle < 0) {
+                    delta = -90;
+                }
             }
-            if (dragBehavior) {
-                elem.call(dragBehavior);
+
+            radians = (delta + arcData) * (Math.PI / 180);
+            that.value = that.radiansToValue(radians, that.options.max, that.options.min, that.options.endAngle, that.options.startAngle);
+            if (that.value >= that.options.min && that.value <= that.options.max) {
+                // tslint:disable-next-line:no-bitwise
+                that.value = Math.round(((~~(((that.value < 0) ? -0.5 : 0.5) + (that.value / that.options.step))) * that.options.step) * 100) / 100;
+                if (that.options.step < 1) {
+                    that.value = parseFloat(that.value.toFixed(1));
+                }
+
+                that.knobValueChanged.emit(that.value);
+
+                that.valueArc.endAngle(that.valueToRadians(that.value, that.options.max, that.options.endAngle, that.options.startAngle, that.options.min));
+                that.valueElem.attr('d', that.valueArc);
+                if (isFinal) {
+                    that.changeArc.endAngle(that.valueToRadians(that.value, that.options.max, that.options.endAngle, that.options.startAngle, that.options.min));
+                    that.changeElem.attr('d', that.changeArc);
+                }
+                if (that.options.displayInput) {
+                    let v = that.value;
+                    if (typeof that.options.inputFormatter === 'function') {
+                        v = that.options.inputFormatter(v);
+                    }
+                    select(that.el.nativeElement).select('#text').text(v + that.options.unit || '');
+                }
             }
         }
-        return elem;
     }
 
     /**
@@ -178,6 +215,19 @@ export class KnobComponentDirective implements AfterViewInit {
         this.changeArc = this.createArc(changeInnerRadius, changeOuterRadius, startAngle, startAngle, this.options.barCap);
         this.valueArc = this.createArc(valueInnerRadius, valueOuterRadius, startAngle, startAngle, this.options.barCap);
         this.interactArc = this.createArc(interactInnerRadius, interactOuterRadius, startAngle, endAngle);
+    }
+
+    /**
+     *   Create the arc
+     */
+    createArc(innerRadius: number, outerRadius = 0, startAngle = 0, endAngle = 0, cornerRadius = 0): d3.Arc<any, d3.DefaultArcObject> {
+        const result = arc()
+            .innerRadius(innerRadius)
+            .outerRadius(outerRadius)
+            .startAngle(startAngle)
+            .endAngle(endAngle)
+            .cornerRadius(cornerRadius);
+        return result;
     }
 
     /**
@@ -310,93 +360,30 @@ export class KnobComponentDirective implements AfterViewInit {
     }
 
     /**
-     *   Draw knob component
+     *   Draw the arc
      */
-    draw() {
-        select(this.el.nativeElement).select('svg').remove();
-        const that = this;
+    drawArc(svg: Selection<any, any, null, undefined>,
+        arcData: d3.Arc<any, d3.DefaultArcObject>,
+        label = '',
+        style: { name: string, value: string },
+        clickInteraction?: any,
+        dragBehavior?: any): any {
 
-        that.createArcs();
+        const elem = svg.append('path')
+            .attr('id', label)
+            .attr('d', arcData)
+            .style(style.name, style.value)
+            .attr('transform', 'translate(' + (this.options.size / 2) + ', ' + (this.options.size / 2) + ')');
 
-        const dragBehavior = drag()
-            .on('drag', dragInteraction)
-            .on('end', clickInteraction);
-
-        that.drawArcs(clickInteraction, dragBehavior);
-
-        // TODO: temp
-        // that.options.animate.enabled = false;
-        if (that.options.animate.enabled && false) {
-            const transitionFunction = 'ease' + that.options.animate.ease[0].toUpperCase() + that.options.animate.ease.slice(1);
-            that.valueElem.transition().ease[transitionFunction](that.options.animate.duration).tween('', function () {
-                const i = interpolate(that.valueToRadians(that.options.startAngle, 360), that.valueToRadians(that.value, that.options.max, that.options.endAngle, that.options.startAngle, that.options.min));
-                return function (t) {
-                    const val = i(t);
-                    that.valueElem.attr('d', that.valueArc.endAngle(val));
-                    that.changeElem.attr('d', that.changeArc.endAngle(val));
-                };
-            });
-        } else {
-            that.changeArc.endAngle(this.valueToRadians(this._value, this.options.max, this.options.endAngle, this.options.startAngle, this.options.min));
-            that.changeElem.attr('d', that.changeArc);
-            that.valueArc.endAngle(this.valueToRadians(this._value, this.options.max, this.options.endAngle, this.options.startAngle, this.options.min));
-            that.valueElem.attr('d', that.valueArc);
-        }
-
-        function dragInteraction() {
-            that.inDrag = true;
-            const x = event.x - (that.options.size / 2);
-            const y = event.y - (that.options.size / 2);
-            interaction(x, y, false);
-        }
-
-        function clickInteraction() {
-            that.inDrag = false;
-            const coords = mouse(this.parentNode);
-            const x = coords[0] - (that.options.size / 2);
-            const y = coords[1] - (that.options.size / 2);
-            interaction(x, y, true);
-        }
-
-        function interaction(x: number, y: number, isFinal: boolean) {
-            let radians: number, delta: number;
-            const arcData = Math.atan(y / x) / (Math.PI / 180);
-
-            if ((x >= 0 && y <= 0) || (x >= 0 && y >= 0)) {
-                delta = 90;
-            } else {
-                delta = 270;
-                if (that.options.startAngle < 0) {
-                    delta = -90;
-                }
+        if (this.options.readOnly === false) {
+            if (clickInteraction) {
+                elem.on('click', clickInteraction);
             }
-
-            radians = (delta + arcData) * (Math.PI / 180);
-            that.value = that.radiansToValue(radians, that.options.max, that.options.min, that.options.endAngle, that.options.startAngle);
-            if (that.value >= that.options.min && that.value <= that.options.max) {
-                // tslint:disable-next-line:no-bitwise
-                that.value = Math.round(((~~(((that.value < 0) ? -0.5 : 0.5) + (that.value / that.options.step))) * that.options.step) * 100) / 100;
-                if (that.options.step < 1) {
-                    that.value = parseFloat(that.value.toFixed(1));
-                }
-
-                that.knobValueChanged.emit(that.value);
-
-                that.valueArc.endAngle(that.valueToRadians(that.value, that.options.max, that.options.endAngle, that.options.startAngle, that.options.min));
-                that.valueElem.attr('d', that.valueArc);
-                if (isFinal) {
-                    that.changeArc.endAngle(that.valueToRadians(that.value, that.options.max, that.options.endAngle, that.options.startAngle, that.options.min));
-                    that.changeElem.attr('d', that.changeArc);
-                }
-                if (that.options.displayInput) {
-                    let v = that.value;
-                    if (typeof that.options.inputFormatter === 'function') {
-                        v = that.options.inputFormatter(v);
-                    }
-                    select(that.el.nativeElement).select('#text').text(v + that.options.unit || '');
-                }
+            if (dragBehavior) {
+                elem.call(dragBehavior);
             }
         }
+        return elem;
     }
 
     /**
@@ -428,6 +415,20 @@ export class KnobComponentDirective implements AfterViewInit {
                 select(this.el.nativeElement).select('#text').text(v + this.options.unit || '');
             }
         }
+    }
+
+    /**
+   *   Convert from value to radians
+   */
+    valueToRadians(value: number, valueEnd = 100, angleEnd = 360, angleStart = 0, valueStart = 0) {
+        return (Math.PI / 180) * ((((value - valueStart) * (angleEnd - angleStart)) / (valueEnd - valueStart)) + angleStart);
+    }
+
+    /**
+     *   Convert from radians to value
+     */
+    radiansToValue(radians: number, valueEnd = 100, valueStart = 0, angleEnd = 360, angleStart = 0) {
+        return ((((((180 / Math.PI) * radians) - angleStart) * (valueEnd - valueStart)) / (angleEnd - angleStart)) + valueStart);
     }
 }
 
