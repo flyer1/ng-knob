@@ -305,8 +305,8 @@ export class KnobComponentDirective implements AfterViewInit {
             cursor = 'default';
         }
 
-        // TODO: I had to remove the second style for now: , 'cursor': cursor
         this.drawArc(svg, this.interactArc, 'interactArc', { name: 'fill-opacity', value: '0' }, clickInteraction, dragBehavior);
+        svg.style('cursor', cursor);
     }
 
     /**
