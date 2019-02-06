@@ -1,5 +1,4 @@
 import { mergeDeep } from '../demo/common.helper';
-import { v } from '@angular/core/src/render3';
 
 export class KnobModel {
     skin: {

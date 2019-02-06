@@ -1,5 +1,5 @@
 import { Input, ElementRef, Directive, Output, EventEmitter } from '@angular/core';
-import { arc, select, range, drag, event, mouse, interpolate, Selection } from 'd3';
+import { arc, select, range, drag, event, mouse, interpolate, Selection, transition } from 'd3';
 
 import { KnobModel } from './knob.model';
 
@@ -18,8 +18,8 @@ export class KnobComponentDirective {
     changeArc: d3.Arc<any, d3.DefaultArcObject>;
     valueArc: d3.Arc<any, d3.DefaultArcObject>;
     interactArc: d3.Arc<any, d3.DefaultArcObject>;
-    changeElem: any; // TODO: what type is this?
-    valueElem: any; // TODO: what type is this?
+    changeElem: Selection<SVGPathElement, any, null, undefined>;
+    valueElem: Selection<SVGPathElement, any, null, undefined>;
 
     @Input() get options(): KnobModel { return this._options; }
     set options(value: KnobModel) {
@@ -85,11 +85,9 @@ export class KnobComponentDirective {
 
         that.drawArcs(clickInteraction, dragBehavior);
 
-        // TODO: temp
-        // that.options.animate.enabled = false;
-        if (that.options.animate.enabled && false) {
+        if (that.options.animate.enabled) {
             const transitionFunction = 'ease' + that.options.animate.ease[0].toUpperCase() + that.options.animate.ease.slice(1);
-            that.valueElem.transition().ease[transitionFunction](that.options.animate.duration).tween('', function () {
+            that.valueElem.transition(transitionFunction).duration(that.options.animate.duration).tween('', function () {
                 const i = interpolate(that.valueToRadians(that.options.startAngle, 360), that.valueToRadians(that.value, that.options.max, that.options.endAngle, that.options.startAngle, that.options.min));
                 return function (t) {
                     const val = i(t);
@@ -367,7 +365,7 @@ export class KnobComponentDirective {
         label = '',
         style: { name: string, value: string },
         clickInteraction?: any,
-        dragBehavior?: any): any {
+        dragBehavior?: any): Selection<SVGPathElement, any, null, undefined> {
 
         const elem = svg.append('path')
             .attr('id', label)
